@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using ThreadDataGenerator.Interfaces;
 using ThreadDataGenerator.ViewModel;
 
 namespace ThreadDataGenerator;
@@ -10,7 +11,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        MainWindowViewModel viewModel = new MainWindowViewModel();
+        IDispatcherWrapper dispatcherWrapper = new DispatcherWrapper(Application.Current.Dispatcher);
+        MainWindowViewModel viewModel = new MainWindowViewModel(dispatcherWrapper);
         DataContext = viewModel;
     }
 

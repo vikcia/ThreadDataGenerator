@@ -1,44 +1,70 @@
 using FluentAssertions;
-using System.Threading.Tasks;
+using ThreadDataGenerator;
 using ThreadDataGenerator.ViewModel;
-using Xunit;
 
 namespace ThreadDataGeneratorTests;
 
 public class MainWindowViewModelTests
 {
-    //[Fact]
-    //public void StartThreads_WithValidInput_ShouldStartThreads()
-    //{
-    //    // Arrange
-    //    var viewModel = new MainWindowViewModel();
-    //    viewModel.ThreadInput = "5"; // Set a valid number of threads
+    private readonly MainWindowViewModel _viewModel;
 
-    //    // Act
-    //    viewModel.StartThreads();
-
-    //    // Assert
-    //    viewModel.Threads.Should().HaveCount(5); // Check if the correct number of threads are started
-    //    foreach (var thread in viewModel.Threads)
-    //    {
-    //        thread.Should().NotBeNull(); // Ensure each thread is not null
-    //        thread.IsAlive.Should().BeTrue(); // Ensure each thread is alive
-    //    }
-    //}
-
-    [Fact]
-    public void StartThreads_WithInvalidInput_ShouldNotStartThreads()
+    public MainWindowViewModelTests()
     {
-        // Arrange
-        var viewModel = new MainWindowViewModel();
-        viewModel.ThreadInput = "1"; // Set an invalid number of threads
-
-        // Act
-        viewModel.StartThreads();
-
-        // Assert
-        viewModel.Threads.Should().BeEmpty(); // Ensure no threads are started
+        _viewModel = new MainWindowViewModel(new FakeDispatcherWrapper());
     }
 
-    // Add more test cases as needed to cover different scenarios
+    [Fact]
+    public void StartThreads_WithValidInput_ShouldStartThreads()
+    {
+        // Arrange
+        Random random = new Random();
+        string input = random.Next(2, 16).ToString();
+        int inputToInt = int.Parse(input);
+
+        _viewModel.ThreadInput = input;
+
+        // Act
+        _viewModel.StartThreads();
+
+        // Assert
+        _viewModel.threads.Should().HaveCount(inputToInt);
+        foreach (var thread in _viewModel.threads)
+        {
+            thread.Should().NotBeNull();
+            thread.IsAlive.Should().BeTrue();
+        }
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("16")]
+    [InlineData(".")]
+    [InlineData("/")]
+    [InlineData("z")]
+    [InlineData("abc")]
+    public void StartThreads_WithInvalidInput_ShouldNotStartThreads(string input)
+    {
+        // Arrange
+        _viewModel.ThreadInput = input;
+
+        // Act
+        _viewModel.StartThreads();
+
+        // Assert
+        _viewModel.threads.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void RandomStringGenerator_ShouldGenerateStringWithCorrectLength()
+    {
+        // Arrange
+        const int length = 8;
+
+        // Act
+        var randomString = _viewModel.RandomStringGenerator(length);
+
+        // Assert
+        randomString.Should().NotBeNull();
+        randomString.Length.Should().Be(length);
+    }
 }

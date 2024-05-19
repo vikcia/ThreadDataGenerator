@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using ThreadDataGenerator.Interfaces;
 using ThreadDataGenerator.Models;
 using ThreadDataGenerator.MVVM;
 using ThreadDataGenerator.Services;
@@ -7,7 +8,7 @@ namespace ThreadDataGenerator.ViewModel;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    private ObservableCollection<ListViewModel> listOfThreads = new ();
+    private ObservableCollection<ListViewModel> listOfThreads = new();
     public ObservableCollection<ListViewModel> ListOfThreads
     {
         get { return listOfThreads; }
@@ -53,16 +54,16 @@ public class MainWindowViewModel : ViewModelBase
 
     private bool running = false;
     private bool shouldStop = false;
-    public bool ShouldStop { get; set; }
 
     private readonly DatabaseService databaseService;
-    private readonly List<Thread> threads;
-    public List<Thread> Threads { get; private set; } = new();
+    public List<Thread> threads { get; private set; }
+    private IDispatcherWrapper _dispatcherWrapper;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(IDispatcherWrapper dispatcherWrapper)
     {
-        threads = new ();
-        databaseService = new ();
+        threads = new List<Thread>();
+        databaseService = new DatabaseService();
+        _dispatcherWrapper = dispatcherWrapper ?? new DispatcherWrapper(App.Current.Dispatcher);
     }
 
     public async Task Start()
@@ -119,13 +120,13 @@ public class MainWindowViewModel : ViewModelBase
 
     public void GenerateThreadData(int threadId)
     {
-        Random random = new ();
+        Random random = new();
 
         while (!shouldStop)
         {
             string randomString = RandomStringGenerator(random.Next(5, 11));
 
-            App.Current.Dispatcher.Invoke(() =>
+            _dispatcherWrapper.InvokeAsync(() =>
             {
                 ListOfThreads.Add(new ListViewModel { ThreadId = threadId, RandomGeneratedString = randomString });
 
@@ -141,7 +142,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         char[] stringChars = new char[length];
-        Random random = new ();
+        Random random = new();
 
         for (int i = 0; i < stringChars.Length; i++)
         {
